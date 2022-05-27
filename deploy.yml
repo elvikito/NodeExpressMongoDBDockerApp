@@ -1,0 +1,130 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: elvis-ramirez
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-mongo-db
+  namespace: elvis-ramirez
+type: Opaque
+data:
+  MONGO_INITDB_ROOT_USERNAME: YWRtaW4=
+  MONGO_INITDB_ROOT_PASSWORD: YWRtaW4=
+
+---
+
+kind: Deployment
+apiVersion: apps/v1 # kubectl api-resources
+metadata:
+  name: deploy-mongo
+  namespace: elvis-ramirez
+spec:
+  selector:
+    matchLabels:
+      k8s-mongo: k-mongo
+  replicas: 1
+  revisionHistoryLimit: 10
+  template:
+    metadata:
+      labels:
+        k8s-mongo: k-mongo
+    spec:
+      containers:
+        - name: k-mongo
+          image: mongo
+---
+
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: configmap
+  namespace: elvis-ramirez
+data:
+  MONGO_USERNAME: "admin"
+  MONGO_PASSWORD: "1234"
+  MONGO_HOST: "local"
+  MONGO_DB: "funWithDocker"
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: service-one
+  namespace: elvis-ramirez
+spec:
+  ports:
+    - port: 3000
+      targetPort: 3000
+
+---
+kind: Deployment
+apiVersion: apps/v1 # kubectl api-resources
+metadata:
+  name: deploy-node
+  namespace: elvis-ramirez
+spec:
+  selector:
+    matchLabels:
+      k8s-node: k-node
+  replicas: 1
+  revisionHistoryLimit: 10
+  template:
+    metadata:
+      labels:
+        k8s-node: k-node
+    spec:
+      containers:
+        - name: k-node
+          image: jgenso/node-demo
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          env: 
+            - name: MONGO_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: configmap
+                  key: MONGO_USERNAME
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: configmap
+                  key: MONGO_PASSWORD
+            - name: MONGO_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: configmap
+                  key: MONGO_HOST
+            - name: MONGO_DB
+              valueFrom:
+                secretKeyRef:
+                  name: configmap
+                  key: MONGO_DB
+      # serviceAccountName: service-one
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-pod
+spec:
+  containers:
+    - name: test-container
+      image: k8s.gcr.io/busybox
+      command: [ "/bin/echo", "$(MONGO_HOST) $(MONGO_DB)" ]
+      env:
+        - name: MONGO_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: configmap
+              key: MONGO_HOST
+        - name: MONGO_DB
+          valueFrom:
+            configMapKeyRef:
+              name: configmap
+              key: MONGO_DB
+  restartPolicy: Never
