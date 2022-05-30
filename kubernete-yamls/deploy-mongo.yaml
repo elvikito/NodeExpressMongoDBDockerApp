@@ -1,0 +1,30 @@
+kind: Deployment
+apiVersion: apps/v1 # kubectl api-resources
+metadata:
+  name: deploy-mongo
+  namespace: elvis-ramirez
+spec:
+  selector:
+    matchLabels:
+      k8s-mongo: k-mongo
+  replicas: 1
+  revisionHistoryLimit: 10
+  template:
+    metadata:
+      labels:
+        k8s-mongo: k-mongo
+    spec:
+      containers:
+        - name: k-mongo
+          image: mongo
+          env:
+          - name: MONGO_INITDB_ROOT_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: secret-mongo-db
+                key: mongo_initdb_root_username
+          - name: MONGO_INITDB_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: secret-mongo-db
+                key: mongo_initdb_root_password

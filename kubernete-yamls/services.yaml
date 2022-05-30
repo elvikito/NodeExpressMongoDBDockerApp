@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nodedemo-service
+  name: nodedemo-svc
+  namespace: j2
+spec:
+  ports:
+  - port: 3000
+    protocol: TCP
+    targetPort: 3000
+    nodePort: 32000
+  selector:
+    app: nodedemo-svc
+  type: NodePort
+status:
+  loadBalancer: {}
+

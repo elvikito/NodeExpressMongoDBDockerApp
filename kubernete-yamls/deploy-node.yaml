@@ -1,0 +1,47 @@
+---
+kind: Deployment
+apiVersion: apps/v1 # kubectl api-resources
+metadata:
+  name: deploy-node
+  namespace: elvis-ramirez
+spec:
+  selector:
+    matchLabels:
+      k8s-node: k-node
+  replicas: 1
+  revisionHistoryLimit: 10
+  template:
+    metadata:
+      labels:
+        k8s-node: k-node
+    spec:
+      containers:
+        - name: k-node
+          image: docker.io/jgenso/node-demo:0.0.1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          env: 
+            - name: MONGO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: secret-mongo-db
+                  key: mongo_initdb_root_username
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret-mongo-db
+                  key: mongo_initdb_root_password
+            - name: MONGO_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: configmap
+                  key: MONGO_HOST
+            - name: MONGO_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: configmap
+                  key: MONGO_DB
+      # serviceAccountName: service-one
+---
