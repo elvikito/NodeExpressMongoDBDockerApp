@@ -3,17 +3,17 @@ kind: Deployment
 apiVersion: apps/v1 # kubectl api-resources
 metadata:
   name: deploy-node
-  namespace: elvis-ramirez
+  namespace: er 
 spec:
   selector:
     matchLabels:
-      k8s-node: k-node
+      nodedemo: nodedemo
   replicas: 1
   revisionHistoryLimit: 10
   template:
     metadata:
       labels:
-        k8s-node: k-node
+        nodedemo: nodedemo
     spec:
       containers:
         - name: k-node

@@ -2,21 +2,22 @@ kind: Deployment
 apiVersion: apps/v1 # kubectl api-resources
 metadata:
   name: deploy-mongo
-  namespace: elvis-ramirez
+  namespace: er 
 spec:
   selector:
     matchLabels:
-      k8s-mongo: k-mongo
+      app: mongodemo
   replicas: 1
   revisionHistoryLimit: 10
   template:
     metadata:
       labels:
-        k8s-mongo: k-mongo
+        app: mongodemo
     spec:
       containers:
         - name: k-mongo
           image: mongo
+          args: ["--dbpath","/data/db"]
           env:
           - name: MONGO_INITDB_ROOT_USERNAME
             valueFrom:
@@ -28,3 +29,11 @@ spec:
               secretKeyRef:
                 name: secret-mongo-db
                 key: mongo_initdb_root_password
+          volumeMounts:
+          - name: "mongo-data-dir"
+            mountPath: "/data/db"
+
+      volumes:
+      - name: "mongo-data-dir"
+        persistentVolumeClaim:
+          claimName: "mongo-pv"

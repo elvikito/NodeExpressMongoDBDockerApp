@@ -1,9 +1,0 @@
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: configmap
-  namespace: elvis-ramirez
-data:
-  MONGO_HOST: "mongodemo-svc.elvis-ramirez.svc.cluster.local"
-  MONGO_DB: "funWithDocker"
----
